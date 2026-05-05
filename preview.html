@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>강점 보물찾기</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; background:#fdf2f8; color:#1e293b; }
+    .page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .card { width:100%; max-width:430px; background:#fff; border-radius:40px; padding:38px 28px; text-align:center; box-shadow:0 24px 50px rgba(15,23,42,.18); border-bottom:8px solid #fbcfe8; }
+    .character { display:flex; flex-direction:column; align-items:center; margin-bottom:18px; animation:bounce 1.8s infinite; }
+    .face { position:relative; width:80px; height:80px; background:#fde68a; border:4px solid #facc15; border-radius:50%; box-shadow:0 8px 20px rgba(0,0,0,.16); }
+    .eye { position:absolute; top:32px; width:7px; height:7px; background:#111827; border-radius:50%; }
+    .eye.left { left:26px; } .eye.right { right:26px; }
+    .mouth { position:absolute; left:27px; bottom:22px; width:26px; height:14px; border-bottom:4px solid #111827; border-radius:0 0 30px 30px; }
+    .sparkle { position:absolute; top:-4px; right:-4px; width:25px; height:25px; background:#f472b6; border:2px solid white; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:13px; }
+    .bubble { margin-top:12px; background:white; padding:8px 14px; border:2px solid #fde68a; border-radius:18px; color:#a16207; font-size:13px; font-weight:800; box-shadow:0 4px 12px rgba(0,0,0,.10); }
+    h1 { margin:12px 0 6px; font-size:31px; font-weight:900; }
+    p { margin:0; color:#64748b; font-weight:600; }
+    .main-btn { margin-top:28px; width:100%; border:0; border-radius:26px; padding:19px; background:#f472b6; color:white; font-size:18px; font-weight:900; cursor:pointer; box-shadow:0 8px 0 #ec8ca5; transition:.12s; }
+    .main-btn:active { transform:translateY(6px); box-shadow:0 2px 0 #ec8ca5; }
+    .quiz { background:#f0f9ff; align-items:stretch; }
+    .quiz-wrap { width:100%; max-width:680px; margin:auto; display:flex; flex-direction:column; justify-content:center; }
+    .progress-row { display:flex; justify-content:space-between; align-items:center; color:#0284c7; font-size:12px; font-weight:900; margin-bottom:8px; }
+    .progress { height:12px; background:white; border-radius:999px; padding:2px; box-shadow: inset 0 2px 6px rgba(0,0,0,.08); margin-bottom:28px; }
+    .bar { height:100%; background:#38bdf8; border-radius:999px; transition:.25s; }
+    .question { background:white; border-radius:30px; padding:28px 22px; box-shadow:0 12px 28px rgba(15,23,42,.12); border-bottom:5px solid #e0f2fe; margin-bottom:22px; text-align:center; }
+    .question h2 { margin:0; font-size:22px; line-height:1.35; }
+    .answers { display:grid; gap:11px; }
+    .answer { border:0; border-radius:18px; padding:15px 26px; color:white; font-size:15px; font-weight:900; display:flex; justify-content:space-between; cursor:pointer; transition:.1s; }
+    .answer:active { transform:translateY(4px); box-shadow:none !important; }
+    .a5 { background:#34d399; box-shadow:0 4px 0 #34b478; } .a4 { background:#6ee7b7; box-shadow:0 4px 0 #50c88c; } .a3 { background:#cbd5e1; box-shadow:0 4px 0 #94a3b8; } .a2 { background:#fdba74; box-shadow:0 4px 0 #e68c50; } .a1 { background:#fb923c; box-shadow:0 4px 0 #e66432; }
+    .back { margin:20px auto 0; display:block; background:none; border:0; color:#38bdf8; font-weight:900; cursor:pointer; }
+    .back:disabled { visibility:hidden; }
+    .result { background:#1e1b4b; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px; }
+    .result-wrap { width:100%; max-width:430px; text-align:center; }
+    .badge { display:inline-block; background:#facc15; color:#312e81; border-radius:999px; padding:5px 12px; font-size:12px; font-weight:900; margin-bottom:6px; }
+    .result h1 { color:white; font-size:24px; margin:0 0 18px; }
+    .starbox { position:relative; width:240px; height:240px; margin:0 auto 22px; filter: drop-shadow(0 0 12px rgba(250,204,21,.35)); }
+    .star { position:absolute; inset:0; clip-path: polygon(50% 0%,61% 36%,98% 36%,68% 58%,79% 94%,50% 72%,21% 94%,32% 58%,2% 36%,39% 36%); background:linear-gradient(135deg,#fbbf24,#f59e0b); animation:slowspin 30s linear infinite; }
+    .award { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:42px; }
+    .label { position:absolute; transform:translate(-50%,-50%); background:white; color:#312e81; border:1px solid #facc15; border-radius:999px; padding:4px 8px; font-size:11px; font-weight:900; box-shadow:0 4px 10px rgba(0,0,0,.18); white-space:nowrap; }
+    .results { display:grid; gap:9px; margin-bottom:16px; }
+    .result-card { background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:12px; display:flex; align-items:center; gap:12px; text-align:left; }
+    .rank { width:34px; height:34px; border-radius:12px; background:#facc15; color:#312e81; display:flex; align-items:center; justify-content:center; font-weight:900; flex:none; }
+    .result-card h3 { margin:0; color:#facc15; font-size:16px; }
+    .result-card p { margin:2px 0 0; color:rgba(255,255,255,.72); font-size:12px; }
+    .reset { width:100%; border:0; border-radius:18px; padding:16px; background:white; color:#312e81; font-weight:900; cursor:pointer; }
+    @keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+    @keyframes slowspin { from { transform:rotate(0); } to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <main id="app"></main>
+  <script>
+    const questions = [
+  { id: 1, text: "혼자 있을 때도 전혀 심심하지 않아.", reverse: false },
+  { id: 2, text: "알고 싶은 게 생기면 책이나 인터넷을 엄청 열심히 찾아보는 편이야.", reverse: false },
+  { id: 3, text: "새로운 걸 배우면 기분이 정말 좋아져!", reverse: false },
+  { id: 4, text: "박물관이나 전시회에 가는 건 정말 지루해.", reverse: true },
+  { id: 5, text: "친구들과 놀다가 문제가 생기면 왜 그런지 금방 알아채.", reverse: false },
+  { id: 6, text: "주변에서 내 판단이 가끔 틀렸다고 말할 때가 있어.", reverse: true },
+  { id: 7, text: "항상 재미있고 새로운 아이디어를 잘 내놓는 편이야.", reverse: false },
+  { id: 8, text: "내 또래 친구들보다 상상력이 훨씬 더 풍부해.", reverse: false },
+  { id: 9, text: "어떤 모임에 가도 사람들과 금방 친해지고 잘 어울려.", reverse: false },
+  { id: 10, text: "내가 기쁘거나 화날 때 왜 그런 기분이 드는지 항상 알고 있어.", reverse: false },
+  { id: 11, text: "어른들이 나보고 나이에 비해 아주 어른스럽다고 말씀하시곤 해.", reverse: false },
+  { id: 12, text: "사람이 살아가는 데 정말 중요한 게 뭔지 진지하게 고민해본 적이 있어.", reverse: false },
+  { id: 13, text: "아무리 무서워도 내가 한 말은 끝까지 지키려고 노력해.", reverse: false },
+  { id: 14, text: "누군가 나를 놀려도 내가 옳다고 생각하면 끝까지 밀고 나가.", reverse: false },
+  { id: 15, text: "맡은 일은 끝까지 해내서 칭찬을 자주 듣는 편이야.", reverse: false },
+  { id: 16, text: "내가 목표를 이룬 건 순전히 내가 열심히 노력했기 때문이야.", reverse: false },
+  { id: 17, text: "다른 사람의 비밀이나 일기는 절대로 궁금해하지도, 보지도 않아.", reverse: false },
+  { id: 18, text: "상황을 모면하기 위해 가끔은 작은 거짓말을 할 수도 있다고 생각해.", reverse: true },
+  { id: 19, text: "새로 전학 온 친구가 있으면 먼저 다가가서 잘해주려고 해.", reverse: false },
+  { id: 20, text: "누가 시키지 않아도 집안일이나 주변 정리를 스스로 도와드려.", reverse: false },
+  { id: 21, text: "내가 누군가에게 정말 소중한 사람이라는 걸 잘 알고 있어.", reverse: false },
+  { id: 22, text: "가족이나 친구와 싸워도 마음속으론 여전히 그들을 아끼고 사랑해.", reverse: false },
+  { id: 23, text: "학교 동아리나 방과 후 활동에 참여하는 게 정말 즐거워.", reverse: false },
+  { id: 24, text: "친구들과 함께하는 모둠 활동이나 단체 게임을 아주 잘해.", reverse: false },
+  { id: 25, text: "내가 별로 안 좋아하는 사람이라도 똑같이 공정하게 대하려고 해.", reverse: false },
+  { id: 26, text: "잘못한 게 있으면 변명하지 않고 바로 인정하는 편이야.", reverse: false },
+  { id: 27, text: "친구들과 놀 때 아이들은 주로 내가 대장이 되어 이끌어주길 바라.", reverse: false },
+  { id: 28, text: "우리 팀 친구들은 나를 믿고 잘 따라주는 편이야.", reverse: false },
+  { id: 29, text: "공부나 할 일을 위해 게임이나 유튜브를 바로 끌 수 있는 절제력이 있어.", reverse: false },
+  { id: 30, text: "숙제나 할 일을 미루다가 마지막에 급하게 하는 편이야.", reverse: true },
+  { id: 31, text: "나쁜 길로 빠질 것 같은 상황이나 친구들은 미리 알고 피해.", reverse: false },
+  { id: 32, text: "어른들은 내가 말이나 행동을 할 때 참 신중하다고 말씀하셔.", reverse: false },
+  { id: 33, text: "내 이야기를 하기보다 친구들의 이야기를 더 많이 들어주려고 해.", reverse: false },
+  { id: 34, text: "가끔 친구들이 나보고 잘난 척한다고 말할 때가 있어.", reverse: true },
+  { id: 35, text: "음악을 듣거나 예쁜 풍경을 보는 걸 다른 애들보다 훨씬 좋아해.", reverse: false },
+  { id: 36, text: "길가에 핀 꽃이나 노을 지는 하늘을 보면 마음이 벅차올라.", reverse: false },
+  { id: 37, text: "내 삶에는 고마워해야 할 일들이 정말 많다고 생각해.", reverse: false },
+  { id: 38, text: "도움을 받았을 때 고맙다는 말을 깜빡하고 안 할 때가 있어.", reverse: true },
+  { id: 39, text: "성적이 좀 안 나와도 다음번엔 꼭 잘될 거라고 믿어.", reverse: false },
+  { id: 40, text: "나중에 어른이 되면 아주 행복하게 잘 살 것 같은 예감이 들어.", reverse: false },
+  { id: 41, text: "세상 모든 사람에게는 태어난 특별한 이유와 목적이 있다고 믿어.", reverse: false },
+  { id: 42, text: "힘든 일이 생겨도 마음속 깊은 믿음으로 이겨낼 수 있어.", reverse: false },
+  { id: 43, text: "누가 나를 기분 나쁘게 해도 똑같이 복수하려고 하지 않아.", reverse: false },
+  { id: 44, text: "나에게 실수한 사람이라도 진심으로 사과하면 용서해줘.", reverse: false },
+  { id: 45, text: "친구들은 나랑 같이 놀 때 시간 가는 줄 모르고 즐거워해.", reverse: false },
+  { id: 46, text: "분위기가 썰렁할 때 웃긴 이야기로 친구들을 기쁘게 만드는 게 좋아.", reverse: false },
+  { id: 47, text: "지금 내 삶이 정말 만족스럽고 행복해.", reverse: false },
+  { id: 48, text: "매일 아침 일어날 때마다 오늘 어떤 즐거운 일이 생길지 기대돼.", reverse: false },
+];
+    const strengthMap = [
+  { name: "호기심", items: [1, 2], desc: "세상 모든 게 궁금한 탐험가!" },
+  { name: "학구열", items: [3, 4], desc: "새로운 지식을 배우는 게 즐거워." },
+  { name: "개방성", items: [5, 6], desc: "다양한 생각에 열려있는 마음." },
+  { name: "창의성", items: [7, 8], desc: "독특한 아이디어 뱅크!" },
+  { name: "사회성 지능", items: [9, 10], desc: "사람의 마음을 잘 읽는 달인." },
+  { name: "통찰", items: [11, 12], desc: "지혜로운 조언자 스타일." },
+  { name: "용감성", items: [13, 14], desc: "두려움에 맞서는 당당함." },
+  { name: "끈기", items: [15, 16], desc: "포기하지 않는 거북이 인내심." },
+  { name: "진실성", items: [17, 18], desc: "솔직하고 믿음직한 모습." },
+  { name: "친절", items: [19, 20], desc: "배려 넘치는 따뜻한 천사." },
+  { name: "사랑", items: [21, 22], desc: "관계를 소중히 여기는 사람." },
+  { name: "책임감", items: [23, 24], desc: "믿고 맡기는 든든한 기둥." },
+  { name: "공정성", items: [25, 26], desc: "치우침 없는 정의로운 마음." },
+  { name: "리더십", items: [27, 28], desc: "모두를 이끄는 멋진 대장." },
+  { name: "자기조절", items: [29, 30], desc: "스스로를 다스리는 성숙함." },
+  { name: "신중함", items: [31, 32], desc: "실수가 적은 사려 깊음." },
+  { name: "겸손", items: [33, 34], desc: "뽐내지 않는 진정한 고수." },
+  { name: "감탄", items: [35, 36], desc: "아름다움을 찾는 보석 같은 눈." },
+  { name: "감사", items: [37, 38], desc: "고마움을 잘 아는 긍정 요정." },
+  { name: "낙관성", items: [39, 40], desc: "밝은 미래를 믿는 희망 아이콘." },
+  { name: "영성", items: [41, 42], desc: "삶의 가치를 아는 깊은 마음." },
+  { name: "용서", items: [43, 44], desc: "자비를 베푸는 넓은 가슴." },
+  { name: "유머", items: [45, 46], desc: "모두를 웃게 하는 비타민." },
+  { name: "열정", items: [47, 48], desc: "에너지 넘치는 뜨거운 심장." }
+];
+    let currentPage = 0;
+    let currentIndex = 0;
+    let answers = {};
+    const app = document.getElementById('app');
+
+    function character(message='내 안에 어떤 보석이 숨어있을까?') {
+      return `<div class="character"><div class="face"><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div><div class="sparkle">✦</div></div><div class="bubble">${message}</div></div>`;
+    }
+    function render() {
+      if (currentPage === 0) renderStart();
+      else if (currentPage === 1) renderQuiz();
+      else renderResult();
+    }
+    function renderStart() {
+      app.innerHTML = `<section class="page"><div class="card">${character()}<h1>강점 보물찾기</h1><p>나만의 특별한 5가지 강점 요정을 만나봐!</p><button class="main-btn" onclick="startQuiz()">시작하기!</button></div></section>`;
+    }
+    function startQuiz() { currentPage = 1; currentIndex = 0; answers = {}; render(); }
+    function answer(value) {
+      answers[questions[currentIndex].id] = value;
+      if (currentIndex < questions.length - 1) currentIndex++;
+      else currentPage = 2;
+      render();
+    }
+    function back() { if (currentIndex > 0) { currentIndex--; render(); } }
+    function renderQuiz() {
+      const q = questions[currentIndex];
+      const progress = Math.round(((currentIndex + 1) / questions.length) * 100);
+      app.innerHTML = `<section class="page quiz"><div class="quiz-wrap"><div class="progress-row"><span>♥ 진행률 ${progress}%</span><span>${currentIndex+1} / ${questions.length}</span></div><div class="progress"><div class="bar" style="width:${progress}%"></div></div>${character('솔직하게 대답해봐~!')}<div class="question"><h2>${q.text}</h2></div><div class="answers"><button class="answer a5" onclick="answer(5)">완전 나야! <span>☺</span></button><button class="answer a4" onclick="answer(4)">그런 편이야 <span>☺</span></button><button class="answer a3" onclick="answer(3)">음... 보통이야 <span>☀</span></button><button class="answer a2" onclick="answer(2)">아닌 것 같아 <span>☀</span></button><button class="answer a1" onclick="answer(1)">전혀 아니야 <span>☀</span></button></div><button class="back" onclick="back()" ${currentIndex===0?'disabled':''}>‹ 이전 질문</button></div></section>`;
+    }
+    function getTopStrengths() {
+      return strengthMap.map(s => {
+        let score = 0;
+        s.items.forEach(qId => {
+          const q = questions.find(x => x.id === qId);
+          let val = answers[qId] || 3;
+          if (q.reverse) val = 6 - val;
+          score += val;
+        });
+        return {...s, score};
+      }).sort((a,b)=>b.score-a.score).slice(0,5);
+    }
+    function renderResult() {
+      const top = getTopStrengths();
+      const pos = [[50,8],[86,38],[72,86],[28,86],[14,38]];
+      app.innerHTML = `<section class="result"><div class="result-wrap"><div class="badge">보물 발견!</div><h1>나의 5가지 핵심 강점</h1><div class="starbox"><div class="star"></div><div class="award">🏆</div>${top.map((s,i)=>`<div class="label" style="left:${pos[i][0]}%;top:${pos[i][1]}%">${s.name}</div>`).join('')}</div><div class="results">${top.map((s,i)=>`<div class="result-card"><div class="rank">${i+1}</div><div><h3>${s.name}</h3><p>${s.desc}</p></div></div>`).join('')}</div><button class="reset" onclick="renderStart()">↻ 다시 해보기</button></div></section>`;
+    }
+    render();
+  </script>
+</body>
+</html>
